@@ -1,0 +1,231 @@
+diff -ruN a/sound/soc/qcom/qdsp6/audioreach.c b/sound/soc/qcom/qdsp6/audioreach.c
+--- a/sound/soc/qcom/qdsp6/audioreach.c	2026-10-14 00:01:23.622969518 +0100
++++ b/sound/soc/qcom/qdsp6/audioreach.c	2026-10-14 00:01:23.632125046 +0100
+@@ -954,6 +954,19 @@
+ }
+ EXPORT_SYMBOL_GPL(audioreach_compr_set_param);
+ 
++/* ---- VentuDAC debug: live override of I2S interface config ---- */
++static int i2s_match_type = 0, i2s_match_idx = 1;	/* which topology module to override */
++module_param(i2s_match_type, int, 0644);
++module_param(i2s_match_idx, int, 0644);
++static int i2s_ovr_type = -1, i2s_ovr_idx = -1, i2s_ovr_sd = -1, i2s_ovr_ws = -1;
++module_param(i2s_ovr_type, int, 0644);
++module_param(i2s_ovr_idx, int, 0644);
++module_param(i2s_ovr_sd, int, 0644);
++module_param(i2s_ovr_ws, int, 0644);
++static bool i2s_log = true;
++module_param(i2s_log, bool, 0644);
++/* ---- end VentuDAC ---- */
++
+ static int audioreach_i2s_set_media_format(struct q6apm_graph *graph,
+ 					   struct audioreach_module *module,
+ 					   struct audioreach_module_config *cfg)
+@@ -1003,6 +1016,23 @@
+ 		break;
+ 	}
+ 
++	if (module->hw_interface_type == i2s_match_type &&
++	    module->hw_interface_idx == i2s_match_idx) {
++		if (i2s_ovr_type >= 0)
++			intf_cfg->cfg.lpaif_type = i2s_ovr_type;
++		if (i2s_ovr_idx >= 0)
++			intf_cfg->cfg.intf_idx = i2s_ovr_idx;
++		if (i2s_ovr_sd >= 0)
++			intf_cfg->cfg.sd_line_idx = i2s_ovr_sd;
++		if (i2s_ovr_ws >= 0)
++			intf_cfg->cfg.ws_src = i2s_ovr_ws;
++	}
++	if (i2s_log)
++		pr_info("ventudac: i2s cfg miid 0x%x type %u idx %u sd %u ws %u fmt 0x%x rate %u bw %u ch %u\n",
++			module->instance_id, intf_cfg->cfg.lpaif_type, intf_cfg->cfg.intf_idx,
++			intf_cfg->cfg.sd_line_idx, intf_cfg->cfg.ws_src, cfg->fmt,
++			cfg->sample_rate, cfg->bit_width, cfg->num_channels);
++
+ 	p += ic_sz;
+ 	hw_cfg = p;
+ 	param_data = &hw_cfg->param_data;
+@@ -1026,6 +1056,8 @@
+ 	fs_cfg->frame_size_factor = 1;
+ 
+ 	rc = q6apm_send_cmd_sync(graph->apm, pkt, 0);
++	if (i2s_log)
++		pr_info("ventudac: i2s cfg miid 0x%x -> rc %d\n", module->instance_id, rc);
+ 
+ 	kfree(pkt);
+ 
+diff -ruN a/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c b/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c
+--- a/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c	2026-10-14 00:01:23.619109067 +0100
++++ b/sound/soc/qcom/qdsp6/q6apm-lpass-dais.c	2026-10-14 00:01:23.631941052 +0100
+@@ -10,6 +10,7 @@
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <sound/pcm.h>
+@@ -39,6 +40,8 @@
+ 	struct q6apm_dai_priv_data priv[APM_PORT_MAX];
+ 	struct q6dsp_cc *cc;
+ };
++static void ventudac_lpi_unvote(struct snd_soc_dai *dai, struct q6apm_lpass_dai_data *d);
++
+ 
+ static int q6dma_set_channel_map(struct snd_soc_dai *dai,
+ 				 unsigned int tx_num, unsigned int *tx_ch_mask,
+@@ -214,7 +217,98 @@
+ 		dai_data->priv[dai->id].eclk_enabled = false;
+ 	}
+ 	q6apm_lpass_dai_shutdown(substream, dai);
++	ventudac_lpi_unvote(dai, dai_data);
++}
++
++/* ---- VentuDAC debug: runtime-selectable PRM clock votes for LPI MI2S ports ---- */
++static int lpi_clk_id;		/* raw PRM clock id, e.g. 0x110 (INT1_MI2S_IBIT); 0 = off */
++module_param(lpi_clk_id, int, 0644);
++MODULE_PARM_DESC(lpi_clk_id, "PRM clock id to vote for LPI MI2S ports (0=off)");
++static int lpi_clk_freq;	/* Hz; 0 = auto (rate*ch*32) */
++module_param(lpi_clk_freq, int, 0644);
++static int lpi_clk_attr = 1;	/* 1 = COUPLE_NO */
++module_param(lpi_clk_attr, int, 0644);
++static int lpi_mclk_id;		/* optional second clock, e.g. 0x304 MCLK_5 */
++module_param(lpi_mclk_id, int, 0644);
++static int lpi_mclk_freq = 12288000;
++module_param(lpi_mclk_freq, int, 0644);
++static int lpi_port_mask = 0x3ff;	/* bit n -> LPI_MI2S_RX_0 + n */
++module_param(lpi_port_mask, int, 0644);
++static int lpi_voted_clk[APM_PORT_MAX], lpi_voted_mclk[APM_PORT_MAX];
++
++static struct device *ventudac_prm_dev(struct q6apm_lpass_dai_data *d)
++{
++	static struct device *cached;
++	struct device_node *np;
++	struct platform_device *pd;
++
++	if (d->cc)
++		return d->cc->dev;
++	if (cached)
++		return cached;
++	np = of_find_compatible_node(NULL, NULL, "qcom,q6prm-lpass-clocks");
++	if (!np)
++		return NULL;
++	pd = of_find_device_by_node(np);
++	of_node_put(np);
++	if (pd)
++		cached = &pd->dev;
++	return cached;
++}
++
++static void ventudac_lpi_vote(struct snd_soc_dai *dai, struct q6apm_lpass_dai_data *d,
++			      struct audioreach_module_config *cfg)
++{
++	struct device *pdev;
++	int id = dai->id, freq, rc;
++
++	if (id < LPI_MI2S_RX_0 || id > LPI_MI2S_TX_4 ||
++	    !(lpi_port_mask & BIT(id - LPI_MI2S_RX_0)))
++		return;
++	pdev = ventudac_prm_dev(d);
++	if (!pdev) {
++		dev_err(dai->dev, "ventudac: no PRM clock device\n");
++		return;
++	}
++	if (lpi_clk_id && !lpi_voted_clk[id]) {
++		freq = lpi_clk_freq ? lpi_clk_freq :
++			cfg->sample_rate * max_t(unsigned int, cfg->num_channels, 2) * 32;
++		rc = q6prm_set_lpass_clock(pdev, lpi_clk_id, lpi_clk_attr,
++					   Q6DSP_LPASS_CLK_ROOT_DEFAULT, freq);
++		dev_info(dai->dev, "ventudac: dai %d vote clk 0x%x @%d attr %d -> %d\n",
++			 id, lpi_clk_id, freq, lpi_clk_attr, rc);
++		if (!rc)
++			lpi_voted_clk[id] = lpi_clk_id;
++	}
++	if (lpi_mclk_id && !lpi_voted_mclk[id]) {
++		rc = q6prm_set_lpass_clock(pdev, lpi_mclk_id, 1,
++					   Q6DSP_LPASS_CLK_ROOT_DEFAULT, lpi_mclk_freq);
++		dev_info(dai->dev, "ventudac: dai %d vote mclk 0x%x @%d -> %d\n",
++			 id, lpi_mclk_id, lpi_mclk_freq, rc);
++		if (!rc)
++			lpi_voted_mclk[id] = lpi_mclk_id;
++	}
++}
++
++static void ventudac_lpi_unvote(struct snd_soc_dai *dai, struct q6apm_lpass_dai_data *d)
++{
++	struct device *pdev = ventudac_prm_dev(d);
++	int id = dai->id;
++
++	if (id < 0 || id >= APM_PORT_MAX || !pdev)
++		return;
++	if (lpi_voted_clk[id]) {
++		q6prm_set_lpass_clock(pdev, lpi_voted_clk[id], lpi_clk_attr,
++				      Q6DSP_LPASS_CLK_ROOT_DEFAULT, 0);
++		lpi_voted_clk[id] = 0;
++	}
++	if (lpi_voted_mclk[id]) {
++		q6prm_set_lpass_clock(pdev, lpi_voted_mclk[id], 1,
++				      Q6DSP_LPASS_CLK_ROOT_DEFAULT, 0);
++		lpi_voted_mclk[id] = 0;
++	}
+ }
++/* ---- end VentuDAC ---- */
+ 
+ static int q6apm_lpass_dai_prepare(struct snd_pcm_substream *substream, struct snd_soc_dai *dai)
+ {
+@@ -250,6 +344,7 @@
+ 		goto err;
+ 	}
+ 
++	ventudac_lpi_vote(dai, dai_data, cfg);
+ 	rc = q6apm_graph_prepare(dai_data->graph[dai->id]);
+ 	if (rc) {
+ 		dev_err(dai->dev, "Failed to prepare Graph %d\n", rc);
+@@ -291,8 +386,8 @@
+ static int q6i2s_set_sysclk(struct snd_soc_dai *dai, int clk_id, unsigned int freq, int dir)
+ {
+ 	struct q6apm_lpass_dai_data *dai_data = dev_get_drvdata(dai->dev);
+-	struct clk *sysclk;
+-	bool *enabled;
++	struct clk *sysclk = NULL;
++	bool *enabled = NULL;
+ 	int ret = 0;
+ 
+ 	switch (clk_id) {
+@@ -312,7 +407,7 @@
+ 		break;
+ 	}
+ 
+-	if (sysclk) {
++	if (sysclk && !*enabled) {
+ 		clk_set_rate(sysclk, freq);
+ 		ret = clk_prepare_enable(sysclk);
+ 		if (ret) {
+@@ -452,6 +547,7 @@
+ 		case PRIMARY_MI2S_RX ... QUATERNARY_MI2S_TX:
+ 		case QUINARY_MI2S_RX ... QUINARY_MI2S_TX:
+ 		case SENARY_MI2S_RX ... SENARY_MI2S_TX:
++		case LPI_MI2S_RX_0 ... LPI_MI2S_TX_4:
+ 			priv = &data->priv[id];
+ 			priv->mclk = of_clk_get_by_name(node, "mclk");
+ 			if (IS_ERR(priv->mclk)) {
+diff -ruN a/sound/soc/qcom/sc8280xp.c b/sound/soc/qcom/sc8280xp.c
+--- a/sound/soc/qcom/sc8280xp.c	2026-10-14 00:01:23.624022916 +0100
++++ b/sound/soc/qcom/sc8280xp.c	2026-10-14 00:01:23.632734809 +0100
+@@ -297,6 +297,16 @@
+ 
+ 		if (pdata->snd_soc_common_priv->mi2s_mclk_enable)
+ 			snd_soc_dai_set_sysclk(codec_dai, 0, mclk_freq, SND_SOC_CLOCK_IN);
++
++		/* VentuDAC: vote LPASS I2S bit clock (DT "bclk") for LPI MI2S ports;
++		 * no-op when the port has no bclk in DT. */
++		if (cpu_dai->id >= LPI_MI2S_RX_0 && cpu_dai->id <= LPI_MI2S_TX_4) {
++			int bclk = snd_soc_params_to_bclk(params);
++
++			if (bclk > 0)
++				snd_soc_dai_set_sysclk(cpu_dai, LPAIF_MI2S_BCLK, bclk,
++						       SND_SOC_CLOCK_OUT);
++		}
+ 		break;
+ 	default:
+ 		break;

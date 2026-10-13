@@ -1,0 +1,148 @@
+--- a/orig.dts
++++ b/orig.dts
+@@ -4634,6 +4634,17 @@
+ 				reg = <0x00 0x980000 0x00 0x4000>;
+ 				required-opps = <0x4a>;
+ 				status = "okay";
++
++				pcm5122@4c {
++					#sound-dai-cells = <0x00>;
++					AVDD-supply = <0x2f3>;
++					CPVDD-supply = <0x2f3>;
++					DVDD-supply = <0x2f3>;
++					compatible = "ti,pcm5122";
++					phandle = <0x400>;
++					reg = <0x4c>;
++					status = "okay";
++				};
+ 			};
+ 
+ 			i2c@984000 {
+@@ -6233,6 +6244,34 @@
+ 				pins = "gpio1";
+ 			};
+ 
++			lpi_i2s1-active-state {
++				phandle = <0x401>;
++
++				clk-pins {
++					bias-disable;
++					drive-strength = <0x08>;
++					function = "i2s1_clk";
++					output-high;
++					pins = "gpio6";
++				};
++
++				data0-pins {
++					bias-disable;
++					drive-strength = <0x08>;
++					function = "i2s1_data";
++					output-high;
++					pins = "gpio9";
++				};
++
++				ws-pins {
++					bias-disable;
++					drive-strength = <0x08>;
++					function = "i2s1_ws";
++					output-high;
++					pins = "gpio7";
++				};
++			};
++
+ 			lpi_i2s4-active-state {
+ 				phandle = <0x301>;
+ 
+@@ -13118,9 +13157,26 @@
+ 	sound {
+ 		compatible = "qcom,monaco-gertrude-sndcard";
+ 		model = "monaco-gertrude";
+-		pinctrl-0 = <0x2fd 0x2fe 0x2ff 0x300 0x301>;
++		pinctrl-0 = <0x2fd 0x2fe 0x2ff 0x300 0x301 0x401>;
+ 		pinctrl-names = "default";
+ 
++		dacpro-playback-dai-link {
++			format = "i2s";
++			link-name = "DACPro Playback";
++
++			codec {
++				sound-dai = <0x402>;
++			};
++
++			cpu {
++				sound-dai = <0x297 0xa0>;
++			};
++
++			platform {
++				sound-dai = <0x295>;
++			};
++		};
++
+ 		hdmi-mi2s-playback-dai-link {
+ 			link-name = "HDMI Playback";
+ 
+@@ -13168,6 +13224,64 @@
+ 				sound-dai = <0x295>;
+ 			};
+ 		};
++
++		sweep0-playback-dai-link {
++			format = "i2s";
++			link-name = "sweep0 Playback";
++
++			codec {
++				sound-dai = <0x402>;
++			};
++
++			cpu {
++				sound-dai = <0x297 0x9e>;
++			};
++
++			platform {
++				sound-dai = <0x295>;
++			};
++		};
++
++		sweep2-playback-dai-link {
++			format = "i2s";
++			link-name = "sweep2 Playback";
++
++			codec {
++				sound-dai = <0x402>;
++			};
++
++			cpu {
++				sound-dai = <0x297 0xa2>;
++			};
++
++			platform {
++				sound-dai = <0x295>;
++			};
++		};
++
++		sweep3-playback-dai-link {
++			format = "i2s";
++			link-name = "sweep3 Playback";
++
++			codec {
++				sound-dai = <0x402>;
++			};
++
++			cpu {
++				sound-dai = <0x297 0xa4>;
++			};
++
++			platform {
++				sound-dai = <0x295>;
++			};
++		};
++	};
++
++	spdif-dit-dacpro {
++		#sound-dai-cells = <0x00>;
++		compatible = "linux,spdif-dit";
++		phandle = <0x402>;
++		status = "okay";
+ 	};
+ 
+ 	thermal-zones {

@@ -1,0 +1,48 @@
+--- a/HiFi.conf
++++ b/HiFi.conf
+@@ -6,7 +6,8 @@
+ 	EnableSequence [
+ 		cset "name='PRIMARY_MI2S_RX Audio Mixer MultiMedia1' 1"
+ 		cset "name='MultiMedia2 Mixer PRIMARY_MI2S_TX' 1"
+-		cset "name='LPI_MI2S_RX_4 Audio Mixer MultiMedia3' 1"
++		cset "name='LPI_MI2S_RX_4 Audio Mixer MultiMedia3' 0"
++		cset "name='LPI_MI2S_RX_1 Audio Mixer MultiMedia3' 1"
+ 	]
+ 	
+ 	Include.e.File "/codecs/max98090/EnableSeq.conf"
+@@ -149,11 +150,34 @@
+ 		PlaybackPCM "hw:${CardId},2"
+ 		PlaybackMixer "default:${CardId}"
+ 	}
++	ConflictingDevice [
++		"JHATDAC"
++	]
+ 	EnableSequence [
++		cset "name='LPI_MI2S_RX_1 Audio Mixer MultiMedia3' 0"
+ 		cset "name='LPI_MI2S_RX_4 Audio Mixer MultiMedia3' 1"
+ 	]
+  
+-	DisableSequence [
++}
++
++SectionDevice."JHATDAC" {
++	Comment "RPi DAC Pro (JHAT)"
++
++	ConflictingDevice [
++		"HDMI"
++	]
++
++	Value {
++		PlaybackPriority 200
++		PlaybackChannels 2
++		PlaybackRate 48000
++		PlaybackFormat "S16_LE"
++		PlaybackPCM "hw:${CardId},2"
++		PlaybackMixer "default:${CardId}"
++	}
++	EnableSequence [
+ 		cset "name='LPI_MI2S_RX_4 Audio Mixer MultiMedia3' 0"
++		cset "name='LPI_MI2S_RX_1 Audio Mixer MultiMedia3' 1"
+ 	]
++
+ }

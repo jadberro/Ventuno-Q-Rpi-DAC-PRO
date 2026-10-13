@@ -1,0 +1,13 @@
+[Unit]
+Description=VentuDAC: init PCM5242 (RPi DAC Pro on JHAT I2S1, 3-wire, PLL from BCK)
+After=sound.target systemd-modules-load.service
+Wants=sound.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/local/sbin/ventudac-init.sh 0x30
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

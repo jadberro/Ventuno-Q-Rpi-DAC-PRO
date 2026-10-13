@@ -1,0 +1,411 @@
+--- a/monaco-gertrude-tplg.conf
++++ b/monaco-gertrude-tplg.conf
+@@ -1709,3 +1709,408 @@
+         ]
+ }
+ 
++######## DAC Pro on JHAT 40-pin header: LPI_I2S1, DAI 160 (LPI_MI2S_RX_1) ########
++
++SectionVendorTuples."device160.sub_graph1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_SUB_GRAPH_INSTANCE_ID "0x0000400A"
++                AR_TKN_DAI_INDEX "160"
++                AR_TKN_U32_SUB_GRAPH_PERF_MODE "0x2"
++                AR_TKN_U32_SUB_GRAPH_DIRECTION "0x1"
++                AR_TKN_U32_SUB_GRAPH_SCENARIO_ID "0x1"
++        }
++}
++SectionData."device160.sub_graph1_data" {
++        tuples "device160.sub_graph1_tuples"
++}
++
++SectionVendorTuples."device160.container1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_CONAINER_INSTANCE_ID "0x0000400A"
++                AR_TKN_U32_CONAINER_CAPABILITY_ID "0x0B001001"
++                AR_TKN_U32_CONAINER_STACK_SIZE "8192"
++                AR_TKN_U32_CONAINER_GRAPH_POS "0x1"
++                AR_TKN_U32_CONAINER_PROC_DOMAIN "0x2"
++        }
++}
++SectionData."device160.container1_data" {
++        tuples "device160.container1_tuples"
++}
++
++SectionVendorTuples."device160.logger1_tuples" {
++        tokens "audioreach_tokens"
++
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "0x000060A0"
++                AR_TKN_U32_MODULE_ID "0x0700101A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "1"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "2"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "0x000060A0"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "24737"
++                AR_TKN_U32_MODULE_LOG_CODE "0x000019ac"
++                AR_TKN_U32_MODULE_LOG_TAP_POINT_ID "1"
++                AR_TKN_U32_MODULE_LOG_MODE "0"
++        }
++}
++SectionData."device160.logger1_data" {
++        tuples "device160.logger1_tuples"
++}
++
++SectionWidget."device160.logger1" {
++        index "1"
++        type "buffer"
++        no_pm "true"
++        subseq "10"
++        data [
++                "device160.sub_graph1_data"
++                "device160.container1_data"
++                "device160.logger1_data"
++        ]
++}
++
++SectionVendorTuples."device160.i2s_rx1_tuples" {
++        tokens "audioreach_tokens"
++
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "24737"
++                AR_TKN_U32_MODULE_ID "0x0700100A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "0"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "0"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "24737"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "0x0"
++                AR_TKN_U32_MODULE_HW_IF_TYPE "3"
++                AR_TKN_U32_MODULE_HW_IF_IDX "0"
++                AR_TKN_U32_MODULE_FMT_DATA "1"
++                AR_TKN_U32_MODULE_SD_LINE_IDX "2"
++        }
++}
++SectionData."device160.i2s_rx1_data" {
++        tuples "device160.i2s_rx1_tuples"
++}
++
++SectionWidget."device160.i2s_rx1" {
++        index "1"
++        type "aif_in"
++        no_pm "true"
++        stream_name "LPI RX1 MI2S Playback"
++        subseq "10"
++        data [
++                "device160.sub_graph1_data"
++                "device160.container1_data"
++                "device160.i2s_rx1_data"
++        ]
++}
++
++SectionGraph."device160.1 LPI_MI2S_RX_1 Graph" {
++        index "1"
++        lines [
++                "device160.logger1, , LPI_MI2S_RX_1 Audio Mixer"
++                "device160.i2s_rx1, , device160.logger1"
++                "LPI RX1 MI2S Playback, , device160.i2s_rx1"
++        ]
++}
++
++SectionWidget."LPI_MI2S_RX_1 Audio Mixer" {
++        reg "-1"
++        index "160"
++        type "mixer"
++
++        mixer [
++                MultiMedia3
++        ]
++
++        data [
++                "device160.sub_graph1_data"
++        ]
++}
++
++SectionGraph."LPI_MI2S_RX_1 Audio Mixer Graph" {
++        index "160"
++        lines [
++                "LPI_MI2S_RX_1 Audio Mixer, MultiMedia3, stream2.logger1"
++        ]
++}
++
++SectionVendorTuples."device158.sub_graph1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_SUB_GRAPH_INSTANCE_ID "0x0000400B"
++                AR_TKN_DAI_INDEX "158"
++                AR_TKN_U32_SUB_GRAPH_PERF_MODE "0x2"
++                AR_TKN_U32_SUB_GRAPH_DIRECTION "0x1"
++                AR_TKN_U32_SUB_GRAPH_SCENARIO_ID "0x1"
++        }
++}
++SectionData."device158.sub_graph1_data" { tuples "device158.sub_graph1_tuples" }
++SectionVendorTuples."device158.container1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_CONAINER_INSTANCE_ID "0x0000400B"
++                AR_TKN_U32_CONAINER_CAPABILITY_ID "0x0B001001"
++                AR_TKN_U32_CONAINER_STACK_SIZE "8192"
++                AR_TKN_U32_CONAINER_GRAPH_POS "0x1"
++                AR_TKN_U32_CONAINER_PROC_DOMAIN "0x2"
++        }
++}
++SectionData."device158.container1_data" { tuples "device158.container1_tuples" }
++SectionVendorTuples."device158.logger1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "0x000060B0"
++                AR_TKN_U32_MODULE_ID "0x0700101A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "1"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "2"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "0x000060B0"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "24753"
++                AR_TKN_U32_MODULE_LOG_CODE "0x00001B9E"
++                AR_TKN_U32_MODULE_LOG_TAP_POINT_ID "1"
++                AR_TKN_U32_MODULE_LOG_MODE "0"
++        }
++}
++SectionData."device158.logger1_data" { tuples "device158.logger1_tuples" }
++SectionWidget."device158.logger1" {
++        index "1"
++        type "buffer"
++        no_pm "true"
++        subseq "10"
++        data [ "device158.sub_graph1_data" "device158.container1_data" "device158.logger1_data" ]
++}
++SectionVendorTuples."device158.i2s_rx1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "24753"
++                AR_TKN_U32_MODULE_ID "0x0700100A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "0"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "0"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "24753"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "0x0"
++                AR_TKN_U32_MODULE_HW_IF_TYPE "0"
++                AR_TKN_U32_MODULE_HW_IF_IDX "1"
++                AR_TKN_U32_MODULE_FMT_DATA "1"
++                AR_TKN_U32_MODULE_SD_LINE_IDX "2"
++                AR_TKN_U32_MODULE_WS_SRC "1"
++        }
++}
++SectionData."device158.i2s_rx1_data" { tuples "device158.i2s_rx1_tuples" }
++SectionWidget."device158.i2s_rx1" {
++        index "1"
++        type "aif_in"
++        no_pm "true"
++        stream_name "LPI RX0 MI2S Playback"
++        subseq "10"
++        data [ "device158.sub_graph1_data" "device158.container1_data" "device158.i2s_rx1_data" ]
++}
++SectionGraph."device158.1 LPI_MI2S_RX_0 Graph" {
++        index "1"
++        lines [
++                "device158.logger1, , LPI_MI2S_RX_0 Audio Mixer"
++                "device158.i2s_rx1, , device158.logger1"
++                "LPI RX0 MI2S Playback, , device158.i2s_rx1"
++        ]
++}
++SectionWidget."LPI_MI2S_RX_0 Audio Mixer" {
++        reg "-1"
++        index "158"
++        type "mixer"
++        mixer [ MultiMedia3 ]
++        data [ "device158.sub_graph1_data" ]
++}
++SectionGraph."LPI_MI2S_RX_0 Audio Mixer Graph" {
++        index "158"
++        lines [ "LPI_MI2S_RX_0 Audio Mixer, MultiMedia3, stream2.logger1" ]
++}
++
++SectionVendorTuples."device162.sub_graph1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_SUB_GRAPH_INSTANCE_ID "0x0000400C"
++                AR_TKN_DAI_INDEX "162"
++                AR_TKN_U32_SUB_GRAPH_PERF_MODE "0x2"
++                AR_TKN_U32_SUB_GRAPH_DIRECTION "0x1"
++                AR_TKN_U32_SUB_GRAPH_SCENARIO_ID "0x1"
++        }
++}
++SectionData."device162.sub_graph1_data" { tuples "device162.sub_graph1_tuples" }
++SectionVendorTuples."device162.container1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_CONAINER_INSTANCE_ID "0x0000400C"
++                AR_TKN_U32_CONAINER_CAPABILITY_ID "0x0B001001"
++                AR_TKN_U32_CONAINER_STACK_SIZE "8192"
++                AR_TKN_U32_CONAINER_GRAPH_POS "0x1"
++                AR_TKN_U32_CONAINER_PROC_DOMAIN "0x2"
++        }
++}
++SectionData."device162.container1_data" { tuples "device162.container1_tuples" }
++SectionVendorTuples."device162.logger1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "0x000060C0"
++                AR_TKN_U32_MODULE_ID "0x0700101A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "1"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "2"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "0x000060C0"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "24769"
++                AR_TKN_U32_MODULE_LOG_CODE "0x00001BA2"
++                AR_TKN_U32_MODULE_LOG_TAP_POINT_ID "1"
++                AR_TKN_U32_MODULE_LOG_MODE "0"
++        }
++}
++SectionData."device162.logger1_data" { tuples "device162.logger1_tuples" }
++SectionWidget."device162.logger1" {
++        index "1"
++        type "buffer"
++        no_pm "true"
++        subseq "10"
++        data [ "device162.sub_graph1_data" "device162.container1_data" "device162.logger1_data" ]
++}
++SectionVendorTuples."device162.i2s_rx1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "24769"
++                AR_TKN_U32_MODULE_ID "0x0700100A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "0"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "0"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "24769"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "0x0"
++                AR_TKN_U32_MODULE_HW_IF_TYPE "0"
++                AR_TKN_U32_MODULE_HW_IF_IDX "1"
++                AR_TKN_U32_MODULE_FMT_DATA "1"
++                AR_TKN_U32_MODULE_SD_LINE_IDX "2"
++        }
++}
++SectionData."device162.i2s_rx1_data" { tuples "device162.i2s_rx1_tuples" }
++SectionWidget."device162.i2s_rx1" {
++        index "1"
++        type "aif_in"
++        no_pm "true"
++        stream_name "LPI RX2 MI2S Playback"
++        subseq "10"
++        data [ "device162.sub_graph1_data" "device162.container1_data" "device162.i2s_rx1_data" ]
++}
++SectionGraph."device162.1 LPI_MI2S_RX_2 Graph" {
++        index "1"
++        lines [
++                "device162.logger1, , LPI_MI2S_RX_2 Audio Mixer"
++                "device162.i2s_rx1, , device162.logger1"
++                "LPI RX2 MI2S Playback, , device162.i2s_rx1"
++        ]
++}
++SectionWidget."LPI_MI2S_RX_2 Audio Mixer" {
++        reg "-1"
++        index "162"
++        type "mixer"
++        mixer [ MultiMedia3 ]
++        data [ "device162.sub_graph1_data" ]
++}
++SectionGraph."LPI_MI2S_RX_2 Audio Mixer Graph" {
++        index "162"
++        lines [ "LPI_MI2S_RX_2 Audio Mixer, MultiMedia3, stream2.logger1" ]
++}
++
++SectionVendorTuples."device164.sub_graph1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_SUB_GRAPH_INSTANCE_ID "0x0000400D"
++                AR_TKN_DAI_INDEX "164"
++                AR_TKN_U32_SUB_GRAPH_PERF_MODE "0x2"
++                AR_TKN_U32_SUB_GRAPH_DIRECTION "0x1"
++                AR_TKN_U32_SUB_GRAPH_SCENARIO_ID "0x1"
++        }
++}
++SectionData."device164.sub_graph1_data" { tuples "device164.sub_graph1_tuples" }
++SectionVendorTuples."device164.container1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_CONAINER_INSTANCE_ID "0x0000400D"
++                AR_TKN_U32_CONAINER_CAPABILITY_ID "0x0B001001"
++                AR_TKN_U32_CONAINER_STACK_SIZE "8192"
++                AR_TKN_U32_CONAINER_GRAPH_POS "0x1"
++                AR_TKN_U32_CONAINER_PROC_DOMAIN "0x2"
++        }
++}
++SectionData."device164.container1_data" { tuples "device164.container1_tuples" }
++SectionVendorTuples."device164.logger1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "0x000060D0"
++                AR_TKN_U32_MODULE_ID "0x0700101A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "1"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "2"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "0x000060D0"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "24785"
++                AR_TKN_U32_MODULE_LOG_CODE "0x00001BA4"
++                AR_TKN_U32_MODULE_LOG_TAP_POINT_ID "1"
++                AR_TKN_U32_MODULE_LOG_MODE "0"
++        }
++}
++SectionData."device164.logger1_data" { tuples "device164.logger1_tuples" }
++SectionWidget."device164.logger1" {
++        index "1"
++        type "buffer"
++        no_pm "true"
++        subseq "10"
++        data [ "device164.sub_graph1_data" "device164.container1_data" "device164.logger1_data" ]
++}
++SectionVendorTuples."device164.i2s_rx1_tuples" {
++        tokens "audioreach_tokens"
++        tuples."word.u32_data" {
++                AR_TKN_U32_MODULE_INSTANCE_ID "24785"
++                AR_TKN_U32_MODULE_ID "0x0700100A"
++                AR_TKN_U32_MODULE_MAX_IP_PORTS "1"
++                AR_TKN_U32_MODULE_MAX_OP_PORTS "0"
++                AR_TKN_U32_MODULE_SRC_OP_PORT_ID "1"
++                AR_TKN_U32_MODULE_DST_IN_PORT_ID "0"
++                AR_TKN_U32_MODULE_SRC_INSTANCE_ID "24785"
++                AR_TKN_U32_MODULE_DST_INSTANCE_ID "0x0"
++                AR_TKN_U32_MODULE_HW_IF_TYPE "0"
++                AR_TKN_U32_MODULE_HW_IF_IDX "1"
++                AR_TKN_U32_MODULE_FMT_DATA "1"
++                AR_TKN_U32_MODULE_SD_LINE_IDX "1"
++                AR_TKN_U32_MODULE_WS_SRC "1"
++        }
++}
++SectionData."device164.i2s_rx1_data" { tuples "device164.i2s_rx1_tuples" }
++SectionWidget."device164.i2s_rx1" {
++        index "1"
++        type "aif_in"
++        no_pm "true"
++        stream_name "LPI RX3 MI2S Playback"
++        subseq "10"
++        data [ "device164.sub_graph1_data" "device164.container1_data" "device164.i2s_rx1_data" ]
++}
++SectionGraph."device164.1 LPI_MI2S_RX_3 Graph" {
++        index "1"
++        lines [
++                "device164.logger1, , LPI_MI2S_RX_3 Audio Mixer"
++                "device164.i2s_rx1, , device164.logger1"
++                "LPI RX3 MI2S Playback, , device164.i2s_rx1"
++        ]
++}
++SectionWidget."LPI_MI2S_RX_3 Audio Mixer" {
++        reg "-1"
++        index "164"
++        type "mixer"
++        mixer [ MultiMedia3 ]
++        data [ "device164.sub_graph1_data" ]
++}
++SectionGraph."LPI_MI2S_RX_3 Audio Mixer Graph" {
++        index "164"
++        lines [ "LPI_MI2S_RX_3 Audio Mixer, MultiMedia3, stream2.logger1" ]
++}
